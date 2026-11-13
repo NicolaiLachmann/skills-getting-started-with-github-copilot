@@ -5,14 +5,18 @@ A super simple FastAPI application that allows students to view and sign up
 for extracurricular activities at Mergington High School.
 """
 
-from fastapi import FastAPI, HTTPException
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse
+from datetime import date
 import os
 from pathlib import Path
 
+from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
+
 app = FastAPI(title="Mergington High School API",
               description="API for viewing and signing up for extracurricular activities")
+
+SIGNUP_DEADLINE = date(2027, 8, 1)
 
 # Mount the static files directory
 current_dir = Path(__file__).parent
@@ -85,7 +89,10 @@ def root():
 
 @app.get("/activities")
 def get_activities():
-    return activities
+    return {
+        name: {**details, "signup_deadline": SIGNUP_DEADLINE.isoformat()}
+        for name, details in activities.items()
+    }
 
 
 @app.post("/activities/{activity_name}/signup")
@@ -94,6 +101,13 @@ def signup_for_activity(activity_name: str, email: str):
     # Validate activity exists
     if activity_name not in activities:
         raise HTTPException(status_code=404, detail="Activity not found")
+
+    if date.today() > SIGNUP_DEADLINE:
+        deadline = f"{SIGNUP_DEADLINE:%B} {SIGNUP_DEADLINE.day}, {SIGNUP_DEADLINE.year}"
+        raise HTTPException(
+            status_code=400,
+            detail=f"The sign-up deadline was {deadline}",
+        )
 
 # Validate student is not already signed up 
     if email in activities[activity_name]["participants"]:
@@ -106,3 +120,20 @@ def signup_for_activity(activity_name: str, email: str):
     # Add student
     activity["participants"].append(email)
     return {"message": f"Signed up {email} for {activity_name}"}
+
+
+@app.delete("/activities/{activity_name}/participants")
+def unregister_from_activity(activity_name: str, email: str):
+    """Unregister a student from an activity"""
+    if activity_name not in activities:
+        raise HTTPException(status_code=404, detail="Activity not found")
+
+    participants = activities[activity_name]["participants"]
+    if email not in participants:
+        raise HTTPException(
+            status_code=404,
+            detail="Student is not signed up for this activity",
+        )
+
+    participants.remove(email)
+    return {"message": f"Unregistered {email} from {activity_name}"}

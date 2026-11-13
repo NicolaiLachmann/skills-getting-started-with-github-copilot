@@ -60,9 +60,11 @@ section h3 {
 .activity-card {
   margin-bottom: 15px;
   padding: 15px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  background-color: #f9f9f9;
+  border: 1px solid #e0e4ef;
+  border-left: 4px solid #3949ab;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 6px rgba(26, 35, 126, 0.06);
 }
 
 .activity-card h4 {
@@ -72,6 +74,107 @@ section h3 {
 
 .activity-card p {
   margin-bottom: 8px;
+}
+
+.signup-deadline {
+  color: #1a237e;
+}
+
+.activity-deadline {
+  font-weight: 600;
+}
+
+.activity-participants {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  background-color: #f0f3ff;
+}
+
+.activity-participants h5 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: #1a237e;
+  font-size: 0.95rem;
+}
+
+.participant-count {
+  min-width: 24px;
+  padding: 1px 7px;
+  border-radius: 12px;
+  background-color: #dce2ff;
+  color: #1a237e;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+.participant-list {
+  list-style: none;
+  padding-left: 0;
+  color: #424a65;
+}
+
+.participant-list li {
+  padding: 3px 0;
+  overflow-wrap: anywhere;
+}
+
+.participant-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.participant-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.remove-participant-button {
+  display: inline-flex;
+  flex: 0 0 32px;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background-color: transparent;
+  color: #b32635;
+}
+
+.remove-participant-button:hover:not(:disabled) {
+  background-color: #ffebee;
+}
+
+.remove-participant-button:focus-visible {
+  outline: 2px solid #3949ab;
+  outline-offset: 2px;
+}
+
+.remove-participant-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.remove-participant-button svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.participant-list .no-participants {
+  list-style: none;
+  color: #69708a;
+  font-style: italic;
 }
 
 .form-group {
