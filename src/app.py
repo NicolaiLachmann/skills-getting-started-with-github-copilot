@@ -5,14 +5,18 @@ A super simple FastAPI application that allows students to view and sign up
 for extracurricular activities at Mergington High School.
 """
 
-from fastapi import FastAPI, HTTPException
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse
+from datetime import date
 import os
 from pathlib import Path
 
+from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
+
 app = FastAPI(title="Mergington High School API",
               description="API for viewing and signing up for extracurricular activities")
+
+SIGNUP_DEADLINE = date(2027, 8, 1)
 
 # Mount the static files directory
 current_dir = Path(__file__).parent
@@ -38,6 +42,42 @@ activities = {
         "schedule": "Mondays, Wednesdays, Fridays, 2:00 PM - 3:00 PM",
         "max_participants": 30,
         "participants": ["john@mergington.edu", "olivia@mergington.edu"]
+    },
+    "Soccer Team": {
+        "description": "Practice teamwork and compete in soccer matches",
+        "schedule": "Wednesdays, 4:00 PM - 5:30 PM",
+        "max_participants": 18,
+        "participants": []
+    },
+    "Basketball Club": {
+        "description": "Develop shooting, dribbling, and game strategy skills",
+        "schedule": "Tuesdays, 3:30 PM - 5:00 PM",
+        "max_participants": 15,
+        "participants": []
+    },
+    "Drama Club": {
+        "description": "Explore acting, stage performance, and improvisation",
+        "schedule": "Thursdays, 4:00 PM - 5:30 PM",
+        "max_participants": 20,
+        "participants": []
+    },
+    "Art Workshop": {
+        "description": "Create paintings, drawings, and mixed-media projects",
+        "schedule": "Mondays, 3:30 PM - 5:00 PM",
+        "max_participants": 16,
+        "participants": []
+    },
+    "Mathletes": {
+        "description": "Solve challenging math problems and prepare for competitions",
+        "schedule": "Wednesdays, 3:30 PM - 4:30 PM",
+        "max_participants": 10,
+        "participants": []
+    },
+    "Science Club": {
+        "description": "Conduct experiments and explore scientific concepts in depth",
+        "schedule": "Fridays, 2:00 PM - 3:30 PM",
+        "max_participants": 14,
+        "participants": []
     }
 }
 
@@ -49,7 +89,10 @@ def root():
 
 @app.get("/activities")
 def get_activities():
-    return activities
+    return {
+        name: {**details, "signup_deadline": SIGNUP_DEADLINE.isoformat()}
+        for name, details in activities.items()
+    }
 
 
 @app.post("/activities/{activity_name}/signup")
@@ -59,9 +102,38 @@ def signup_for_activity(activity_name: str, email: str):
     if activity_name not in activities:
         raise HTTPException(status_code=404, detail="Activity not found")
 
+    if date.today() > SIGNUP_DEADLINE:
+        deadline = f"{SIGNUP_DEADLINE:%B} {SIGNUP_DEADLINE.day}, {SIGNUP_DEADLINE.year}"
+        raise HTTPException(
+            status_code=400,
+            detail=f"The sign-up deadline was {deadline}",
+        )
+
+# Validate student is not already signed up 
+    if email in activities[activity_name]["participants"]:
+        raise HTTPException(status_code=400, detail="Student already signed up for this activity")      
+
+
     # Get the specific activity
     activity = activities[activity_name]
 
     # Add student
     activity["participants"].append(email)
     return {"message": f"Signed up {email} for {activity_name}"}
+
+
+@app.delete("/activities/{activity_name}/participants")
+def unregister_from_activity(activity_name: str, email: str):
+    """Unregister a student from an activity"""
+    if activity_name not in activities:
+        raise HTTPException(status_code=404, detail="Activity not found")
+
+    participants = activities[activity_name]["participants"]
+    if email not in participants:
+        raise HTTPException(
+            status_code=404,
+            detail="Student is not signed up for this activity",
+        )
+
+    participants.remove(email)
+    return {"message": f"Unregistered {email} from {activity_name}"}
